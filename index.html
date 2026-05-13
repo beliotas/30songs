@@ -3,83 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>30 SONGS</title>
+    <title>30 SONGS - FIX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --bg: #f7f7f7; --text: #2a2a2a; --card: #ffffff; 
-            --border: #e5e5e5; --accent: #2a2a2a;
-        }
-        .dark-mode { 
-            --bg: #111111; --text: #eeeeee; --card: #1a1a1a; 
-            --border: #222222; --accent: #ffffff;
-        }
-
-        html, body { 
-            position: fixed; overflow: hidden; width: 100%; height: 100%; 
-            margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
-        }
-
-        #scroll-area { 
-            height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
-            padding: 80px 24px 200px 24px;
-        }
-        
-        nav { 
-            position: fixed; top: 0; width: 100%; z-index: 200; 
-            background: var(--bg); border-bottom: 1px solid var(--border); 
-            padding: env(safe-area-inset-top) 24px 15px 24px;
-        }
-
+        :root { --bg: #f7f7f7; --text: #2a2a2a; --card: #ffffff; --border: #e5e5e5; }
+        .dark-mode { --bg: #111; --text: #eee; --card: #1a1a1a; --border: #222; }
+        html, body { position: fixed; overflow: hidden; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+        #scroll-area { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 80px 24px 250px 24px; }
+        nav { position: fixed; top: 0; width: 100%; z-index: 200; background: var(--bg); border-bottom: 1px solid var(--border); padding: env(safe-area-inset-top) 24px 15px 24px; }
         .label-caps { font-size: 10px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; font-weight: 700; }
-        
-        .zen-input { 
-            border: 1px solid var(--border); background: var(--card); border-radius: 14px; 
-            outline: none; color: var(--text); text-align: center; font-size: 16px; width: 100%;
-        }
-        
-        /* Resultados flotantes para no mover el resto */
-        #resultados { 
-            position: absolute; top: 70px; left: 0; right: 0; 
-            background: var(--card); border-radius: 16px; 
-            max-height: 50vh; overflow-y: auto; 
-            border: 1px solid var(--border); display: none; z-index: 300; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        #player { 
-            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 400; 
-            background: var(--card); border-top: 1px solid var(--border); 
-            padding-bottom: env(safe-area-inset-bottom);
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1);
-        }
-        #player.active { transform: translateY(0); }
-
-        .progress-bar-bg { width: 100%; background: var(--border); height: 4px; border-radius: 2px; overflow: hidden; }
-        #progress-val { background: var(--accent); height: 100%; width: 0%; }
+        .zen-input { border: 1px solid var(--border); background: var(--card); border-radius: 14px; outline: none; color: var(--text); text-align: center; font-size: 16px; width: 100%; }
+        #resultados { position: absolute; top: 70px; left: 0; right: 0; background: var(--card); border-radius: 16px; max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); display: none; z-index: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        #player { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 400; background: var(--card); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); display: none; }
+        #player.active { display: block; }
+        .progress-bar-bg { width: 100%; background: var(--border); height: 4px; border-radius: 2px; }
+        #progress-val { background: var(--text); height: 100%; width: 0%; }
     </style>
 </head>
 <body>
 
-    <nav class="flex justify-between items-center bg-[var(--bg)]">
+    <nav class="flex justify-between items-center">
         <span class="label-caps">30 SONGS</span>
-        <div class="flex items-center gap-4">
-            <button onclick="toggleTheme()" class="label-caps opacity-50">TEMA</button>
-            <span id="fav-count" class="label-caps font-bold">0</span>
-        </div>
+        <button onclick="toggleTheme()" class="label-caps opacity-50">TEMA</button>
     </nav>
 
     <div id="scroll-area">
         <div class="max-w-md mx-auto relative">
-            <!-- El input ahora desbloquea el audio al enfocarlo -->
-            <input id="q" type="text" placeholder="BUSCAR MÚSICA" 
-                   class="zen-input py-4 px-4" oninput="handleSearch()" 
-                   onfocus="unlockAudio()" autocomplete="off">
+            <input id="q" type="text" placeholder="BUSCAR ARTISTA" class="zen-input py-4 px-4" oninput="handleSearch()" autocomplete="off">
             <div id="resultados"></div>
             
-            <button onclick="zenStart()" class="w-full py-4 mt-6 rounded-xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.2em] uppercase">
-                PLAY MY MIX
+            <button id="btn-start" onclick="initAndStart()" class="w-full py-4 mt-6 rounded-xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.2em] uppercase">
+                EMPEZAR MIX
             </button>
 
             <div id="favs-list" class="mt-10 space-y-3"></div>
@@ -94,46 +49,44 @@
                     <p id="p-title" class="font-bold text-sm truncate"></p>
                     <p id="p-artist" class="label-caps opacity-60 truncate"></p>
                 </div>
-                <button onclick="onlyAddFav()" class="text-2xl" id="heart-btn">♡</button>
+                <button onclick="addFav()" class="text-2xl" id="heart-btn">♡</button>
             </div>
-
-            <div class="progress-bar-bg mb-6" onclick="seek(event)">
-                <div id="progress-val"></div>
-            </div>
-
+            <div class="progress-bar-bg mb-6" onclick="seek(event)"><div id="progress-val"></div></div>
             <div class="flex items-center justify-around">
-                <button onclick="prevTrack()" class="p-2">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                </button>
-                <button onclick="togglePlay()" class="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--text)] text-[var(--bg)] shadow-xl">
+                <button onclick="prevTrack()" class="p-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                <button onclick="togglePlay()" id="btn-play-main" class="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--text)] text-[var(--bg)]">
                     <div id="play-icon"></div>
                 </button>
-                <button onclick="nextTrack()" class="p-2">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                </button>
+                <button onclick="nextTrack()" class="p-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
             </div>
         </div>
     </footer>
 
-    <audio id="main-audio" playsinline preload="auto"></audio>
+    <!-- AUDIO ELEMENT CON CARGA FORZADA -->
+    <audio id="main-audio" playsinline crossorigin="anonymous"></audio>
 
     <script>
         const audio = document.getElementById('main-audio');
-        let audioUnlocked = false;
-
-        // Desbloqueo forzado para Brave/Safari
-        function unlockAudio() {
-            if (audioUnlocked) return;
-            audio.src = "https://www.soundjay.com/buttons/beep-01a.mp3"; // Mini-audio para engañar al sistema
-            audio.play().then(() => {
-                audio.pause();
-                audioUnlocked = true;
-                console.log("Audio Unlocked");
-            }).catch(() => {});
-        }
-
+        let currentTrack = null;
+        let favorites = JSON.parse(localStorage.getItem('zenFavs')) || [];
         const APIS = ["https://pipedapi.kavin.rocks", "https://api.piped.private.coffee", "https://pipedapi.rivo.gg"];
-        let apiIdx = 0, currentTrack = null, favorites = JSON.parse(localStorage.getItem('zenFavs')) || [];
+        let apiIdx = 0;
+
+        // ESTA ES LA FUNCIÓN CLAVE PARA BRAVE/IOS
+        async function initAndStart() {
+            // 1. Gesto de usuario: intentamos reproducir un silencio para "abrir" el audio
+            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFMmZtdCAQAAAAAQABAIAAgAAAAIAAAABhZGF0YQAAAAA=";
+            try {
+                await audio.play();
+                if (favorites.length > 0) {
+                    nextTrack();
+                } else {
+                    alert("Añade primero algunas canciones a tu lista.");
+                }
+            } catch(e) {
+                console.log("Error de interacción inicial");
+            }
+        }
 
         async function fetchPiped(endpoint) {
             try {
@@ -153,11 +106,11 @@
             clearTimeout(window.searchTimer);
             window.searchTimer = setTimeout(async () => {
                 resDiv.style.display = 'block';
-                resDiv.innerHTML = '<div class="p-8 text-center animate-pulse label-caps">Buscando...</div>';
+                resDiv.innerHTML = '<div class="p-8 text-center label-caps">...</div>';
                 const data = await fetchPiped(`/search?q=${encodeURIComponent(q)}&filter=music_songs`);
                 resDiv.innerHTML = data.items.slice(0, 5).map(item => {
                     const id = item.url.split('=')[1];
-                    return `<div onclick="selectTrack('${id}', '${item.title.replace(/'/g,"")}', '${item.uploaderName.replace(/'/g,"")}', '${item.thumbnail}')" class="flex items-center gap-4 p-4 border-b border-[var(--border)] active:bg-zinc-100 dark:active:bg-zinc-800">
+                    return `<div onclick="selectTrack('${id}', '${item.title.replace(/'/g,"")}', '${item.uploaderName.replace(/'/g,"")}', '${item.thumbnail}')" class="flex items-center gap-4 p-4 border-b border-[var(--border)] active:bg-zinc-100">
                         <img src="${item.thumbnail}" class="w-10 h-10 rounded object-cover">
                         <div class="flex-1 min-w-0"><p class="text-xs font-bold truncate">${item.title}</p></div>
                     </div>`;
@@ -168,7 +121,6 @@
         function selectTrack(id, title, artist, thumb) {
             document.getElementById('resultados').style.display = 'none';
             document.getElementById('q').value = '';
-            document.getElementById('q').blur();
             reproducir(id, title, artist, thumb);
         }
 
@@ -185,26 +137,39 @@
                 const stream = data.audioStreams.find(s => s.format === 'M4A') || data.audioStreams[0];
                 
                 audio.src = stream.url;
-                audio.play();
-                updatePlayIcon();
+                audio.load(); // Forzamos la carga del nuevo buffer
                 
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = new MediaMetadata({
-                        title: title, artist: artist,
-                        artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpg' }]
+                // En Brave/iOS, el play() debe ser una respuesta directa
+                let playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        updatePlayIcon();
+                        setupMediaSession(title, artist, thumb);
+                    }).catch(err => {
+                        console.log("Reproducción bloqueada: reintenta con el botón de Play");
+                        updatePlayIcon();
                     });
                 }
-            } catch (e) { alert("Error de conexión. Intenta de nuevo."); }
+            } catch (e) { console.error(e); }
         }
 
-        function togglePlay() { 
-            audio.paused ? audio.play() : audio.pause(); 
-            updatePlayIcon(); 
+        function setupMediaSession(t, a, img) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: t, artist: a, artwork: [{ src: img, sizes: '512x512', type: 'image/jpeg' }]
+                });
+                navigator.mediaSession.setActionHandler('play', () => audio.play());
+                navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+                navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+            }
         }
+
+        function togglePlay() { audio.paused ? audio.play() : audio.pause(); updatePlayIcon(); }
 
         function updatePlayIcon() {
-            const iconDiv = document.getElementById('play-icon');
-            iconDiv.innerHTML = audio.paused ? 
+            const icon = document.getElementById('play-icon');
+            icon.innerHTML = audio.paused ? 
                 `<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>` : 
                 `<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
         }
@@ -214,34 +179,27 @@
             document.getElementById('progress-val').style.width = perc + '%';
         };
 
-        function seek(e) { audio.currentTime = (e.offsetX / e.currentTarget.offsetWidth) * audio.duration; }
-        audio.onended = nextTrack;
+        audio.onended = () => { nextTrack(); };
 
         function updateFavsUI() {
-            document.getElementById('fav-count').innerText = favorites.length;
             document.getElementById('favs-list').innerHTML = favorites.map(f => `
                 <div class="flex items-center gap-4 p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl">
                     <img src="${f.thumb}" class="w-12 h-12 rounded-lg object-cover" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
                     <div class="flex-1 min-w-0" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
                         <p class="text-[12px] font-bold truncate">${f.title}</p>
-                        <p class="label-caps opacity-50 text-[9px]">${f.artist}</p>
                     </div>
                     <button onclick="removeFav('${f.id}')" class="opacity-20 px-2">×</button>
                 </div>`).join('');
             localStorage.setItem('zenFavs', JSON.stringify(favorites));
         }
 
-        function onlyAddFav() {
-            if(!currentTrack || favorites.some(f => f.id === currentTrack.id) || favorites.length >= 30) return;
+        function addFav() {
+            if(!currentTrack || favorites.some(f => f.id === currentTrack.id)) return;
             favorites.push({...currentTrack});
             updateFavsUI(); updateFavBtn();
         }
 
-        function removeFav(id) { 
-            favorites = favorites.filter(f => f.id !== id); 
-            updateFavsUI(); updateFavBtn(); 
-        }
-
+        function removeFav(id) { favorites = favorites.filter(f => f.id !== id); updateFavsUI(); updateFavBtn(); }
         function updateFavBtn() {
             const isFav = currentTrack && favorites.some(f => f.id === currentTrack.id);
             document.getElementById('heart-btn').innerText = isFav ? "❤️" : "♡";
@@ -259,8 +217,8 @@
             reproducir(favorites[idx].id, favorites[idx].title, favorites[idx].artist, favorites[idx].thumb);
         }
 
-        function zenStart() { if (favorites.length) nextTrack(); }
         function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+        function seek(e) { audio.currentTime = (e.offsetX / e.currentTarget.offsetWidth) * audio.duration; }
 
         updateFavsUI();
         updatePlayIcon();
