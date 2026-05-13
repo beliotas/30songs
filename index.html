@@ -2,207 +2,288 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>30 SONGS - ULTIMATE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 SONGS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000000; --text: #ffffff; --accent: #1DB954; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; height: 100vh; }
-        .safe-area { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        input { background: #121212 !important; border: 1px solid #333 !important; color: white !important; }
-        #results-layer { position: absolute; top: 140px; left: 20px; right: 20px; z-index: 1000; display: none; }
+        :root { 
+            --bg: #f7f7f7; 
+            --text: #2a2a2a; 
+            --card: #ffffff; 
+            --border: #e5e5e5; 
+            --accent: #2a2a2a; 
+            --player-bg: #ffffff;
+            --btn-play: #2a2a2a;
+            --btn-icon: #f7f7f7;
+        }
+        .dark-mode { 
+            --bg: #161616; 
+            --text: #d1d1d1; 
+            --card: #1e1e1e; 
+            --border: #2a2a2a; 
+            --accent: #d1d1d1; 
+            --player-bg: #1a1a1a;
+            --btn-play: #d1d1d1;
+            --btn-icon: #161616;
+        }
+
+        html, body { overflow: hidden; height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.4s; }
+
+        #main-scroll-container { height: 100%; overflow-y: scroll; scrollbar-width: none; padding-top: 80px; padding-bottom: 280px; }
+        #main-scroll-container::-webkit-scrollbar { display: none; }
+
+        nav { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(var(--bg-rgb, 247,247,247), 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+
+        .label-caps { font-size: 10px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; font-weight: 600; }
+        
+        /* BARRA BUSQUEDA ESTILO BOTON MIX */
+        .zen-input { 
+            border: 1px solid var(--border); 
+            background: transparent; 
+            border-radius: 1rem; /* 16px para coincidir con el botón */
+            outline: none; 
+            transition: 0.3s; 
+            color: var(--text);
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .zen-input::placeholder { color: var(--text); opacity: 0.3; }
+        
+        #resultados { position: absolute; top: 110%; left: 0; right: 0; background: var(--card); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-height: 350px; overflow-y: auto; border: 1px solid var(--border); display: none; z-index: 110; }
+
+        .progress-container { width: 100%; background: var(--border); height: 2px; cursor: pointer; position: relative; }
+        #progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.1s linear; }
+        .time-label { font-size: 9px; font-family: monospace; opacity: 0.5; margin-top: 8px; }
+
+        .cassette-icon { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cassette-filled { fill: var(--accent) !important; stroke: var(--accent) !important; }
+        .cassette-filled .reel { fill: var(--player-bg) !important; stroke: none !important; }
+        
+        #player { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100; background: var(--player-bg); border-top: 1px solid var(--border); transform: translateY(100%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        #player.visible { transform: translateY(0); }
     </style>
 </head>
-<body class="safe-area flex flex-col p-5">
+<body>
 
-    <header class="flex justify-between items-center mb-8">
-        <h1 class="text-xs font-black tracking-widest opacity-50">ZEN PLAYER</h1>
-        <div id="count" class="text-xs font-bold text-[var(--accent)]">0 / 30</div>
-    </header>
+    <nav class="p-6 flex justify-between items-center">
+        <div class="flex items-center gap-6">
+            <span class="label-caps text-[var(--text)]">30 SONGS</span>
+            <button onclick="toggleTheme()" id="theme-btn-text" class="label-caps opacity-50">DARK</button>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="fav-count" class="label-caps font-bold text-[var(--text)]">0</span>
+            <span class="label-caps">/ 30</span>
+        </div>
+    </nav>
 
-    <div class="relative mb-6">
-        <input id="q" type="text" placeholder="Buscar artista o canción..." class="w-full p-4 rounded-2xl outline-none" oninput="search()">
-        <div id="results-layer" class="glass rounded-2xl overflow-hidden shadow-2xl"></div>
-    </div>
-
-    <button onclick="forceStart()" class="w-full py-4 rounded-2xl bg-white text-black font-bold text-[10px] tracking-widest uppercase mb-10 active:scale-95 transition-transform">
-        ACTIVAR AUDIO & MIX
-    </button>
-
-    <div id="list" class="flex-1 overflow-y-auto space-y-3 pb-40">
-        <!-- Canciones favoritas aquí -->
-    </div>
-
-    <footer id="player" class="fixed bottom-0 left-0 right-0 p-6 glass rounded-t-3xl translate-y-full transition-transform duration-500">
-        <div class="max-w-md mx-auto">
-            <div class="flex items-center gap-4 mb-6">
-                <img id="p-img" class="w-16 h-16 rounded-lg shadow-lg">
-                <div class="flex-1 min-w-0">
-                    <p id="p-title" class="font-bold truncate text-sm"></p>
-                    <p id="p-artist" class="text-xs opacity-50 truncate"></p>
-                </div>
-                <button id="p-fav" onclick="toggleFav()" class="text-2xl">♡</button>
+    <div id="main-scroll-container">
+        <main class="max-w-xl mx-auto w-full px-6">
+            <!-- BUSCADOR REDISEÑADO -->
+            <div class="mb-4 relative">
+                <input id="q" type="text" placeholder="MAKE A MIX" class="zen-input w-full py-5 px-7" oninput="handleSearch()">
+                <div id="resultados"></div>
             </div>
             
-            <div class="h-1 bg-zinc-800 rounded-full mb-6 overflow-hidden" onclick="seek(event)">
-                <div id="p-bar" class="h-full bg-white w-0"></div>
-            </div>
-
-            <div class="flex justify-around items-center">
-                <button onclick="prev()" class="p-2"><svg width="30" height="30" fill="white" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                <button onclick="togglePlay()" class="w-16 h-16 bg-white rounded-full flex items-center justify-center active:scale-90 transition-transform">
-                    <div id="p-icon" class="text-black">
-                        <svg width="30" height="30" fill="black" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
+            <div class="mb-14">
+                <button onclick="zenStart()" class="w-full py-5 rounded-2xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:opacity-90 transition-opacity">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <circle cx="8" cy="12" r="2"></circle>
+                        <circle cx="16" cy="12" r="2"></circle>
+                        <path d="M6 20l2-3h8l2 3"></path>
+                    </svg>
+                    START 30s MIX
                 </button>
-                <button onclick="next()" class="p-2"><svg width="30" height="30" fill="white" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
             </div>
-            <button onclick="retry()" class="w-full text-[9px] opacity-30 mt-4 tracking-tighter">¿NO CARGA? REINTENTAR CONEXIÓN</button>
+            <div id="favs-list" class="space-y-3"></div>
+        </main>
+    </div>
+
+    <footer id="player">
+        <div class="p-8 pb-10">
+            <div class="max-w-xl mx-auto">
+                <div class="flex items-center gap-6 mb-4">
+                    <img id="p-img" src="" class="w-16 h-16 rounded-2xl object-cover bg-zinc-200 shadow-sm">
+                    <div class="flex-1 min-w-0">
+                        <p id="p-title" class="text-sm font-bold truncate tracking-tight"></p>
+                        <p id="p-artist" class="label-caps mt-1.5 truncate opacity-60"></p>
+                    </div>
+                    <div id="cassette-wrapper" class="cursor-pointer p-2" onclick="onlyAddFav()">
+                        <svg id="heart-icon" class="cassette-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
+                            <rect x="6" y="8" width="12" height="8" rx="1"></rect>
+                            <circle class="reel" cx="9" cy="12" r="1.2"></circle>
+                            <circle class="reel" cx="15" cy="12" r="1.2"></circle>
+                            <path d="M9 20l1-2.5h4l1 2.5"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="progress-container" onclick="seek(event)"><div id="progress-bar"></div></div>
+                    <div class="flex justify-between">
+                        <span id="time-current" class="time-label">0:00</span>
+                        <span id="time-total" class="time-label">0:00</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <button onclick="toggleShuffle()" id="play-shuffle" class="opacity-20 transition-opacity"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg></button>
+                    <div class="flex items-center gap-10">
+                        <button onclick="prevTrack()" class="opacity-40 hover:opacity-100 transition-opacity"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                        <button onclick="togglePlay()" class="w-16 h-16 rounded-full flex items-center justify-center hover:scale-105 transition-transform" style="background: var(--btn-play); color: var(--btn-icon);"><div id="play-icon"></div></button>
+                        <button onclick="nextTrack()" class="opacity-40 hover:opacity-100 transition-opacity"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+                    </div>
+                    <div class="w-5"></div>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <audio id="audio" playsinline crossorigin="anonymous"></audio>
+    <audio id="main-audio"></audio>
 
     <script>
-        const audio = document.getElementById('audio');
-        let favs = JSON.parse(localStorage.getItem('zen_30')) || [];
-        let current = null;
-        // Lista de instancias actualizadas 2024
-        const INSTANCES = [
-            "https://pipedapi.kavin.rocks",
-            "https://api.piped.private.coffee",
-            "https://pipedapi.ultra-prive.org",
-            "https://pipedapi.syncit.me"
-        ];
-        let instIdx = 0;
+        const APIS = ["https://pipedapi.kavin.rocks", "https://api.piped.private.coffee", "https://pipedapi.rivo.gg"];
+        let apiIdx = 0, isShuffle = false, currentTrack = null;
+        let favorites = JSON.parse(localStorage.getItem('zenFavs')) || [];
+        const audio = document.getElementById('main-audio');
 
-        async function call(ep) {
-            for(let i=0; i<INSTANCES.length; i++) {
-                try {
-                    const r = await fetch(INSTANCES[instIdx] + ep);
-                    if(r.ok) return await r.json();
-                } catch(e) { instIdx = (instIdx + 1) % INSTANCES.length; }
-            }
-        }
-
-        function search() {
-            const q = document.getElementById('q').value;
-            const res = document.getElementById('results-layer');
-            if(q.length < 3) { res.style.display = 'none'; return; }
-
-            clearTimeout(window.t);
-            window.t = setTimeout(async () => {
-                res.style.display = 'block';
-                res.innerHTML = '<div class="p-4 text-center text-xs opacity-50">Buscando...</div>';
-                const data = await call(`/search?q=${encodeURIComponent(q)}&filter=music_songs`);
-                if(!data) return;
-                res.innerHTML = data.items.slice(0,5).map(i => `
-                    <div onclick="playNow('${i.url.split('=')[1]}','${i.title.replace(/'/g,"")}','${i.uploaderName.replace(/'/g,"")}','${i.thumbnail}')" class="p-4 flex items-center gap-3 border-b border-white/5 active:bg-white/10">
-                        <img src="${i.thumbnail}" class="w-10 h-10 rounded object-cover">
-                        <div class="min-w-0 flex-1"><p class="text-xs font-bold truncate">${i.title}</p></div>
-                    </div>
-                `).join('');
-            }, 600);
-        }
-
-        async function playNow(id, t, a, img) {
-            document.getElementById('results-layer').style.display = 'none';
-            document.getElementById('q').value = '';
-            current = {id, t, a, img};
-            
-            const p = document.getElementById('player');
-            p.classList.remove('translate-y-full');
-            document.getElementById('p-title').innerText = t;
-            document.getElementById('p-artist').innerText = a;
-            document.getElementById('p-img').src = img;
-            
-            updateFavIcon();
-
+        async function fetchPiped(endpoint) {
             try {
-                const data = await call(`/streams/${id}`);
-                const s = data.audioStreams.find(x => x.format === 'M4A') || data.audioStreams[0];
-                audio.src = s.url;
-                audio.load();
-                await audio.play();
-                updateUI();
-                
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = new MediaMetadata({
-                        title: t, artist: a, artwork: [{ src: img, sizes: '512x512', type: 'image/jpeg' }]
-                    });
-                }
-            } catch(e) { 
-                console.error("Block by Brave/iOS");
+                const response = await fetch(`${APIS[apiIdx]}${endpoint}`);
+                if (!response.ok) throw new Error();
+                return await response.json();
+            } catch (err) {
+                apiIdx = (apiIdx + 1) % APIS.length;
+                return fetchPiped(endpoint);
             }
         }
 
-        function forceStart() {
-            // Truco maestro: reproducir un silencio para engañar a Brave
-            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFMmZtdCAQAAAAAQABAIAAgAAAAIAAAABhZGF0YQAAAAA=";
-            audio.play().then(() => {
-                if(favs.length > 0) next();
-            });
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            document.getElementById('theme-btn-text').innerText = isDark ? 'LIGHT' : 'DARK';
+            document.documentElement.style.setProperty('--bg-rgb', isDark ? '22, 22, 22' : '247, 247, 247');
+            updatePlayIcon();
         }
 
-        function retry() { if(current) playNow(current.id, current.t, current.a, current.img); }
+        let searchTimer;
+        function handleSearch() {
+            clearTimeout(searchTimer);
+            const q = document.getElementById('q').value;
+            const resDiv = document.getElementById('resultados');
+            if (!q) { resDiv.style.display = 'none'; return; }
+            searchTimer = setTimeout(async () => {
+                resDiv.style.display = 'block';
+                resDiv.innerHTML = '<div class="p-6 text-center label-caps animate-pulse">...</div>';
+                const data = await fetchPiped(`/search?q=${encodeURIComponent(q)}&filter=music_songs`);
+                resDiv.innerHTML = data.items.slice(0, 6).map(item => {
+                    const id = item.url.split('=')[1];
+                    return `<div onclick="selectTrack('${id}', '${item.title.replace(/'/g,"")}', '${item.uploaderName.replace(/'/g,"")}', '${item.thumbnail}')" class="flex items-center gap-4 p-4 border-b border-[var(--border)] cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"><img src="${item.thumbnail}" class="w-10 h-10 rounded-lg object-cover"><div class="flex-1 min-w-0"><p class="text-[12px] font-bold truncate">${item.title}</p><p class="label-caps opacity-50">${item.uploaderName}</p></div></div>`;
+                }).join('');
+            }, 200);
+        }
 
-        function togglePlay() { audio.paused ? audio.play() : audio.pause(); updateUI(); }
+        function selectTrack(id, title, artist, thumb) {
+            document.getElementById('resultados').style.display = 'none';
+            document.getElementById('q').value = '';
+            reproducir(id, title, artist, thumb);
+        }
+
+        async function reproducir(id, title, artist, thumb) {
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
+            currentTrack = {id, title, artist, thumb};
+            document.getElementById('player').classList.add('visible');
+            document.getElementById('p-title').innerText = title;
+            document.getElementById('p-artist').innerText = artist;
+            document.getElementById('p-img').src = thumb;
+            updateFavBtn();
+            try {
+                const response = await fetch(`${APIS[apiIdx]}/streams/${id}`, { priority: 'high' });
+                const data = await response.json();
+                const stream = data.audioStreams.find(s => s.format === 'M4A') || data.audioStreams[0];
+                audio.src = stream.url;
+                audio.play();
+                updatePlayIcon();
+            } catch (e) {
+                apiIdx = (apiIdx + 1) % APIS.length;
+                reproducir(id, title, artist, thumb);
+            }
+        }
+
+        function togglePlay() { audio.paused ? audio.play() : audio.pause(); updatePlayIcon(); }
         
-        function updateUI() {
-            const icon = document.getElementById('p-icon');
-            icon.innerHTML = audio.paused ? 
-                `<svg width="30" height="30" fill="black" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>` : 
-                `<svg width="30" height="30" fill="black" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+        function updatePlayIcon() {
+            const iconColor = getComputedStyle(document.body).getPropertyValue('--btn-icon').trim();
+            document.getElementById('play-icon').innerHTML = audio.paused ? 
+                `<svg width="26" height="26" viewBox="0 0 24 24" fill="${iconColor}"><path d="M8 5v14l11-7z"/></svg>` : 
+                `<svg width="26" height="26" viewBox="0 0 24 24" fill="${iconColor}"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
         }
 
+        function formatTime(s) { if (isNaN(s)) return "0:00"; const m = Math.floor(s/60), sec = Math.floor(s%60); return `${m}:${sec<10?'0':''}${sec}`; }
         audio.ontimeupdate = () => {
-            document.getElementById('p-bar').style.width = (audio.currentTime / audio.duration * 100) + '%';
+            const perc = (audio.currentTime / audio.duration * 100) || 0;
+            document.getElementById('progress-bar').style.width = perc + '%';
+            document.getElementById('time-current').innerText = formatTime(audio.currentTime);
+            document.getElementById('time-total').innerText = formatTime(audio.duration);
         };
 
-        function toggleFav() {
-            if(!current) return;
-            const idx = favs.findIndex(x => x.id === current.id);
-            if(idx > -1) favs.splice(idx, 1);
-            else if(favs.length < 30) favs.push(current);
-            localStorage.setItem('zen_30', JSON.stringify(favs));
-            renderFavs();
-            updateFavIcon();
-        }
-
-        function renderFavs() {
-            document.getElementById('count').innerText = `${favs.length} / 30`;
-            document.getElementById('list').innerHTML = favs.map(f => `
-                <div class="flex items-center gap-4 p-3 glass rounded-2xl active:scale-95 transition-transform" onclick="playNow('${f.id}','${f.t}','${f.a}','${f.img}')">
-                    <img src="${f.img}" class="w-12 h-12 rounded-lg object-cover">
-                    <div class="flex-1 min-w-0"><p class="text-[13px] font-bold truncate">${f.t}</p><p class="text-[10px] opacity-40">${f.a}</p></div>
-                </div>
-            `).join('');
-        }
-
-        function updateFavIcon() {
-            const isF = favs.some(x => x.id === current?.id);
-            document.getElementById('p-fav').innerText = isF ? "❤️" : "♡";
-        }
-
-        function next() {
-            if(!favs.length) return;
-            const i = (favs.findIndex(x => x.id === current?.id) + 1) % favs.length;
-            const n = favs[i];
-            playNow(n.id, n.t, n.a, n.img);
-        }
-
-        function prev() {
-            if(!favs.length) return;
-            const i = (favs.findIndex(x => x.id === current?.id) - 1 + favs.length) % favs.length;
-            const p = favs[i];
-            playNow(p.id, p.t, p.a, p.img);
-        }
-
-        audio.onended = next;
         function seek(e) { audio.currentTime = (e.offsetX / e.currentTarget.offsetWidth) * audio.duration; }
+        audio.onended = nextTrack;
 
-        renderFavs();
+        function updateFavsUI() {
+            document.getElementById('fav-count').innerText = favorites.length;
+            const container = document.getElementById('favs-list');
+            container.innerHTML = favorites.map(f => `
+                <div class="flex items-center gap-5 p-4 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm">
+                    <img src="${f.thumb}" class="w-14 h-14 rounded-xl object-cover cursor-pointer" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
+                        <p class="text-[13px] font-bold truncate">${f.title}</p>
+                        <p class="label-caps opacity-50">${f.artist}</p>
+                    </div>
+                    <button onclick="removeFav('${f.id}')" class="opacity-20 p-2 text-xl hover:opacity-100 transition-opacity">×</button>
+                </div>`).join('');
+            localStorage.setItem('zenFavs', JSON.stringify(favorites));
+        }
+
+        function onlyAddFav() {
+            if(!currentTrack) return;
+            const exists = favorites.some(f => f.id === currentTrack.id);
+            if(!exists && favorites.length < 30) {
+                favorites.push({...currentTrack});
+                updateFavsUI(); updateFavBtn();
+            }
+        }
+
+        function removeFav(id) { favorites = favorites.filter(f => f.id !== id); updateFavsUI(); updateFavBtn(); }
+        
+        function updateFavBtn() {
+            const icon = document.getElementById('heart-icon');
+            const isFav = currentTrack && favorites.some(f => f.id === currentTrack.id);
+            if (isFav) icon.classList.add('cassette-filled');
+            else icon.classList.remove('cassette-filled');
+        }
+
+        function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('play-shuffle').style.opacity = isShuffle ? "1" : "0.2"; }
+        function nextTrack() {
+            if (!favorites.length) return;
+            let nIdx = isShuffle ? Math.floor(Math.random()*favorites.length) : (favorites.findIndex(f => f.id === currentTrack?.id)+1)%favorites.length;
+            const t = favorites[nIdx]; reproducir(t.id, t.title, t.artist, t.thumb);
+        }
+        function prevTrack() {
+            if (!favorites.length) return;
+            let pIdx = (favorites.findIndex(f => f.id === currentTrack?.id)-1+favorites.length)%favorites.length;
+            const t = favorites[pIdx]; reproducir(t.id, t.title, t.artist, t.thumb);
+        }
+        function zenStart() { if (favorites.length) { isShuffle = true; document.getElementById('play-shuffle').style.opacity = "1"; nextTrack(); } }
+
+        document.addEventListener('click', (e) => { if (!e.target.closest('.relative')) document.getElementById('resultados').style.display = 'none'; });
+        updateFavsUI();
     </script>
 </body>
 </html>
