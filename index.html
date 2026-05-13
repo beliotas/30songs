@@ -18,28 +18,16 @@
             --btn-play: #d1d1d1; --btn-icon: #161616;
         }
 
-        /* Estabilidad total en iOS */
         html, body { 
-            position: fixed;
-            overflow: hidden; 
-            width: 100%;
-            height: 100%; 
-            margin: 0; 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
+            position: fixed; overflow: hidden; width: 100%; height: 100%; 
+            margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
         }
 
-        /* Contenedor con espacio reservado para el reproductor */
         #main-scroll-container { 
-            height: 100%; 
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
-            padding-top: 80px; 
-            padding-bottom: 320px; /* Espacio extra para que el reproductor no tape nada */
+            height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-top: 80px; padding-bottom: 300px; 
         }
-        #main-scroll-container::-webkit-scrollbar { display: none; }
-
+        
         nav { 
             position: fixed; top: 0; width: 100%; z-index: 100; 
             background: var(--bg); border-bottom: 1px solid var(--border); 
@@ -49,55 +37,37 @@
         .label-caps { font-size: 10px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; font-weight: 600; }
         
         .zen-input { 
-            border: 1px solid var(--border); 
-            background: transparent; 
-            border-radius: 1rem; 
-            outline: none; 
-            color: var(--text);
-            text-align: center;
-            font-size: 16px; 
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-weight: 700;
+            border: 1px solid var(--border); background: transparent; border-radius: 1rem; 
+            outline: none; color: var(--text); text-align: center; font-size: 16px; 
+            letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
         }
-        .zen-input::placeholder { font-size: 10px; opacity: 0.3; }
         
         #resultados { 
             position: absolute; top: 110%; left: 0; right: 0; 
             background: var(--card); border-radius: 16px; 
-            max-height: 40vh; overflow-y: auto; 
+            max-height: 45vh; overflow-y: auto; 
             border: 1px solid var(--border); display: none; z-index: 110; 
         }
 
-        .progress-container { width: 100%; background: var(--border); height: 2px; cursor: pointer; margin-bottom: 4px; }
-        #progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.1s linear; }
-
-        /* REPRODUCTOR SIEMPRE VISIBLE */
         #player { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            z-index: 100; 
-            background: var(--player-bg); 
-            border-top: 1px solid var(--border); 
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100; 
+            background: var(--player-bg); border-top: 1px solid var(--border); 
             padding-bottom: env(safe-area-inset-bottom);
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
-            display: block !important; /* Forzamos visualización */
         }
 
-        .cassette-filled { fill: var(--accent) !important; }
+        .progress-container { width: 100%; background: var(--border); height: 3px; cursor: pointer; }
+        #progress-bar { background: var(--accent); height: 100%; width: 0%; }
     </style>
 </head>
-<body>
+<body onclick="unlockAudio()">
 
     <nav class="p-6 flex justify-between items-center">
         <div class="flex items-center gap-6">
-            <span class="label-caps text-[var(--text)]">30 SONGS</span>
+            <span class="label-caps">30 SONGS</span>
             <button onclick="toggleTheme()" id="theme-btn-text" class="label-caps opacity-50">DARK</button>
         </div>
         <div class="flex items-center gap-2">
-            <span id="fav-count" class="label-caps font-bold text-[var(--text)]">0</span>
+            <span id="fav-count" class="label-caps font-bold">0</span>
             <span class="label-caps">/ 30</span>
         </div>
     </nav>
@@ -105,52 +75,42 @@
     <div id="main-scroll-container">
         <main class="max-w-xl mx-auto w-full px-6">
             <div class="mb-4 relative">
-                <input id="q" type="text" placeholder="BUSCAR MÚSICA" class="zen-input w-full py-4 px-7" oninput="handleSearch()" autocomplete="off">
+                <input id="q" type="text" placeholder="BUSCAR" class="zen-input w-full py-4 px-7" oninput="handleSearch()" autocomplete="off">
                 <div id="resultados"></div>
             </div>
-            
-            <div class="mb-10">
-                <button onclick="zenStart()" class="w-full py-5 rounded-2xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.3em] uppercase active:scale-95 transition-transform">
-                    START 30s MIX
-                </button>
-            </div>
+            <button onclick="zenStart()" class="w-full py-5 mb-8 rounded-2xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.3em] uppercase active:opacity-70">
+                START 30s MIX
+            </button>
             <div id="favs-list" class="space-y-3"></div>
         </main>
     </div>
 
-    <!-- Reproductor fijo -->
     <footer id="player">
         <div class="p-6">
             <div class="max-w-xl mx-auto">
                 <div class="flex items-center gap-4 mb-4">
-                    <img id="p-img" src="https://via.placeholder.com/150" class="w-12 h-12 rounded-xl object-cover bg-zinc-100">
+                    <img id="p-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-12 h-12 rounded-xl object-cover bg-zinc-100">
                     <div class="flex-1 min-w-0">
-                        <p id="p-title" class="text-[13px] font-bold truncate tracking-tight">Selecciona una canción</p>
-                        <p id="p-artist" class="label-caps mt-1 truncate opacity-60">Artista</p>
+                        <p id="p-title" class="text-[13px] font-bold truncate">Listo para sonar</p>
+                        <p id="p-artist" class="label-caps mt-1 truncate opacity-60">Selecciona track</p>
                     </div>
-                    <button onclick="onlyAddFav()" class="p-2">
-                        <svg id="heart-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                            <circle cx="9" cy="12" r="1"></circle>
-                            <circle cx="15" cy="12" r="1"></circle>
-                        </svg>
+                    <button onclick="onlyAddFav()" class="p-2" id="btn-fav-main">
+                        <svg id="heart-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><circle cx="9" cy="12" r="1"></circle><circle cx="15" cy="12" r="1"></circle></svg>
                     </button>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-5">
                     <div class="progress-container" onclick="seek(event)"><div id="progress-bar"></div></div>
-                    <div class="flex justify-between text-[9px] opacity-40 font-mono">
-                        <span id="time-current">0:00</span>
-                        <span id="time-total">0:00</span>
-                    </div>
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <button onclick="toggleShuffle()" id="play-shuffle" class="opacity-20"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line></svg></button>
+                    <button onclick="toggleShuffle()" id="play-shuffle" class="opacity-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
                     <div class="flex items-center gap-8">
-                        <button onclick="prevTrack()"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                        <button onclick="togglePlay()" class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" style="background: var(--btn-play); color: var(--btn-icon);"><div id="play-icon"></div></button>
-                        <button onclick="nextTrack()"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+                        <button onclick="prevTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                        <button onclick="togglePlay()" id="main-play-btn" class="w-14 h-14 rounded-full flex items-center justify-center shadow-md" style="background: var(--btn-play); color: var(--btn-icon);">
+                            <div id="play-icon"></div>
+                        </button>
+                        <button onclick="nextTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
                     </div>
                     <div class="w-4"></div>
                 </div>
@@ -158,28 +118,51 @@
         </div>
     </footer>
 
-    <audio id="main-audio"></audio>
+    <audio id="main-audio" playsinline></audio>
 
     <script>
-        // Bloqueo de scroll y altura para Safari
-        const fixHeight = () => { document.body.style.height = window.innerHeight + 'px'; };
-        window.addEventListener('resize', fixHeight);
-        fixHeight();
+        const audio = document.getElementById('main-audio');
+        let audioUnlocked = false;
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            audio.play().then(() => {
+                audio.pause();
+                audioUnlocked = true;
+            }).catch(e => console.log("Unlock pendiente..."));
+        }
 
         const APIS = ["https://pipedapi.kavin.rocks", "https://api.piped.private.coffee", "https://pipedapi.rivo.gg"];
         let apiIdx = 0, isShuffle = false, currentTrack = null, favorites = JSON.parse(localStorage.getItem('zenFavs')) || [];
-        const audio = document.getElementById('main-audio');
+
+        // --- FUNCIONALIDAD PANTALLA DE BLOQUEO (MediaSession) ---
+        function updateMediaSession() {
+            if ('mediaSession' in navigator && currentTrack) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: currentTrack.title,
+                    artist: currentTrack.artist,
+                    artwork: [{ src: currentTrack.thumb, sizes: '512x512', type: 'image/jpg' }]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => { audio.play(); updatePlayIcon(); });
+                navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); updatePlayIcon(); });
+                navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
+                navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
+            }
+        }
 
         async function fetchPiped(endpoint) {
             try {
                 const r = await fetch(`${APIS[apiIdx]}${endpoint}`);
-                return r.ok ? await r.json() : throwErr();
-            } catch { apiIdx = (apiIdx + 1) % APIS.length; return fetchPiped(endpoint); }
+                return r.ok ? await r.json() : Promise.reject();
+            } catch { 
+                apiIdx = (apiIdx + 1) % APIS.length; 
+                return fetchPiped(endpoint); 
+            }
         }
 
         function toggleTheme() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            document.getElementById('theme-btn-text').innerText = isDark ? 'LIGHT' : 'DARK';
+            document.body.classList.toggle('dark-mode');
             updatePlayIcon();
         }
 
@@ -191,19 +174,18 @@
             if (!q) { resDiv.style.display = 'none'; return; }
             searchTimer = setTimeout(async () => {
                 resDiv.style.display = 'block';
-                resDiv.innerHTML = '<div class="p-6 text-center label-caps">Buscando...</div>';
+                resDiv.innerHTML = '<div class="p-6 text-center label-caps">...</div>';
                 const data = await fetchPiped(`/search?q=${encodeURIComponent(q)}&filter=music_songs`);
                 resDiv.innerHTML = data.items.slice(0, 6).map(item => {
                     const id = item.url.split('=')[1];
                     return `<div onclick="selectTrack('${id}', '${item.title.replace(/'/g,"")}', '${item.uploaderName.replace(/'/g,"")}', '${item.thumbnail}')" class="flex items-center gap-4 p-4 border-b border-[var(--border)]"><img src="${item.thumbnail}" class="w-10 h-10 rounded-lg object-cover"><div class="flex-1 min-w-0"><p class="text-[12px] font-bold truncate">${item.title}</p><p class="label-caps opacity-50">${item.uploaderName}</p></div></div>`;
                 }).join('');
-            }, 500);
+            }, 400);
         }
 
         function selectTrack(id, title, artist, thumb) {
             document.getElementById('resultados').style.display = 'none';
             document.getElementById('q').value = '';
-            document.getElementById('q').blur();
             reproducir(id, title, artist, thumb);
         }
 
@@ -213,31 +195,45 @@
             document.getElementById('p-artist').innerText = artist;
             document.getElementById('p-img').src = thumb;
             updateFavBtn();
+            updatePlayIcon(true); 
+            updateMediaSession(); // Actualizar controles nativos
+
             try {
                 const data = await fetchPiped(`/streams/${id}`);
                 const stream = data.audioStreams.find(s => s.format === 'M4A') || data.audioStreams[0];
                 audio.src = stream.url;
-                audio.play();
-                updatePlayIcon();
-            } catch (e) { console.error("Error de carga"); }
+                audio.load();
+                audio.play().then(() => updatePlayIcon()).catch(() => updatePlayIcon());
+            } catch (e) { console.error("Error stream"); }
         }
 
-        function togglePlay() { audio.paused ? audio.play() : audio.pause(); updatePlayIcon(); }
-        function updatePlayIcon() {
+        function togglePlay() { 
+            if (audio.paused) audio.play(); else audio.pause(); 
+            updatePlayIcon(); 
+        }
+
+        function updatePlayIcon(loading = false) {
             const color = getComputedStyle(document.body).getPropertyValue('--btn-icon').trim();
-            document.getElementById('play-icon').innerHTML = audio.paused ? 
+            const iconDiv = document.getElementById('play-icon');
+            if (loading) {
+                iconDiv.innerHTML = `<div class="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>`;
+                return;
+            }
+            iconDiv.innerHTML = audio.paused ? 
                 `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M8 5v14l11-7z"/></svg>` : 
                 `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+            
+            // Sincronizar estado con el sistema
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
+            }
         }
 
         audio.ontimeupdate = () => {
             const perc = (audio.currentTime / audio.duration * 100) || 0;
             document.getElementById('progress-bar').style.width = perc + '%';
-            document.getElementById('time-current').innerText = formatTime(audio.currentTime);
-            document.getElementById('time-total').innerText = formatTime(audio.duration);
         };
 
-        function formatTime(s) { if (isNaN(s)) return "0:00"; const m = Math.floor(s/60), sec = Math.floor(s%60); return `${m}:${sec<10?'0':''}${sec}`; }
         function seek(e) { audio.currentTime = (e.offsetX / e.currentTarget.offsetWidth) * audio.duration; }
         audio.onended = nextTrack;
 
@@ -265,13 +261,14 @@
         function updateFavBtn() {
             const icon = document.getElementById('heart-icon');
             const isFav = currentTrack && favorites.some(f => f.id === currentTrack.id);
-            isFav ? icon.classList.add('cassette-filled') : icon.classList.remove('cassette-filled');
+            icon.style.fill = isFav ? "var(--accent)" : "none";
         }
 
         function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('play-shuffle').style.opacity = isShuffle ? "1" : "0.2"; }
         function nextTrack() {
             if (!favorites.length) return;
             let nIdx = isShuffle ? Math.floor(Math.random()*favorites.length) : (favorites.findIndex(f => f.id === currentTrack?.id)+1)%favorites.length;
+            if (nIdx < 0 || isNaN(nIdx)) nIdx = 0;
             reproducir(favorites[nIdx].id, favorites[nIdx].title, favorites[nIdx].artist, favorites[nIdx].thumb);
         }
         function prevTrack() {
@@ -279,7 +276,7 @@
             let pIdx = (favorites.findIndex(f => f.id === currentTrack?.id)-1+favorites.length)%favorites.length;
             reproducir(favorites[pIdx].id, favorites[pIdx].title, favorites[pIdx].artist, favorites[pIdx].thumb);
         }
-        function zenStart() { if (favorites.length) { isShuffle = true; toggleShuffle(); nextTrack(); } }
+        function zenStart() { if (favorites.length) { isShuffle = true; nextTrack(); } }
 
         updateFavsUI();
         updatePlayIcon();
