@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
     <title>30 SONGS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
@@ -18,30 +18,33 @@
             --btn-play: #d1d1d1; --btn-icon: #161616;
         }
 
-        /* Cambios críticos para estabilidad en móvil */
+        /* Estabilidad total en iOS */
         html, body { 
             position: fixed;
             overflow: hidden; 
             width: 100%;
             height: 100%; 
-            height: -webkit-fill-available;
             margin: 0; 
             background: var(--bg); 
             color: var(--text); 
             font-family: 'Inter', sans-serif; 
-            transition: background 0.4s; 
         }
 
+        /* Contenedor con espacio reservado para el reproductor */
         #main-scroll-container { 
             height: 100%; 
             overflow-y: auto; 
             -webkit-overflow-scrolling: touch;
             padding-top: 80px; 
-            padding-bottom: 280px; 
+            padding-bottom: 320px; /* Espacio extra para que el reproductor no tape nada */
         }
         #main-scroll-container::-webkit-scrollbar { display: none; }
 
-        nav { position: fixed; top: 0; width: 100%; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); }
+        nav { 
+            position: fixed; top: 0; width: 100%; z-index: 100; 
+            background: var(--bg); border-bottom: 1px solid var(--border); 
+            padding-top: env(safe-area-inset-top);
+        }
 
         .label-caps { font-size: 10px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; font-weight: 600; }
         
@@ -52,26 +55,38 @@
             outline: none; 
             color: var(--text);
             text-align: center;
-            font-size: 16px; /* Importante: 16px evita el zoom automático en iPhone */
+            font-size: 16px; 
             letter-spacing: 0.2em;
             text-transform: uppercase;
             font-weight: 700;
         }
-        /* Ajustamos el placeholder para que no se vea gigante aunque el font sea 16px */
         .zen-input::placeholder { font-size: 10px; opacity: 0.3; }
         
-        #resultados { position: absolute; top: 110%; left: 0; right: 0; background: var(--card); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-height: 50vh; overflow-y: auto; border: 1px solid var(--border); display: none; z-index: 110; }
+        #resultados { 
+            position: absolute; top: 110%; left: 0; right: 0; 
+            background: var(--card); border-radius: 16px; 
+            max-height: 40vh; overflow-y: auto; 
+            border: 1px solid var(--border); display: none; z-index: 110; 
+        }
 
-        .progress-container { width: 100%; background: var(--border); height: 2px; cursor: pointer; position: relative; margin-bottom: 4px; }
-        #progress-bar { background: var(--accent); height: 100%; width: 0%; }
-        .time-label { font-size: 9px; font-family: monospace; opacity: 0.5; }
+        .progress-container { width: 100%; background: var(--border); height: 2px; cursor: pointer; margin-bottom: 4px; }
+        #progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.1s linear; }
 
-        .cassette-icon { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .cassette-filled { fill: var(--accent) !important; stroke: var(--accent) !important; }
-        .cassette-filled .reel { fill: var(--player-bg) !important; stroke: none !important; }
-        
-        #player { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100; background: var(--player-bg); border-top: 1px solid var(--border); transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding-bottom: env(safe-area-inset-bottom); }
-        #player.visible { transform: translateY(0); }
+        /* REPRODUCTOR SIEMPRE VISIBLE */
+        #player { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 100; 
+            background: var(--player-bg); 
+            border-top: 1px solid var(--border); 
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+            display: block !important; /* Forzamos visualización */
+        }
+
+        .cassette-filled { fill: var(--accent) !important; }
     </style>
 </head>
 <body>
@@ -90,12 +105,12 @@
     <div id="main-scroll-container">
         <main class="max-w-xl mx-auto w-full px-6">
             <div class="mb-4 relative">
-                <input id="q" type="text" placeholder="MAKE A MIX" class="zen-input w-full py-4 px-7" oninput="handleSearch()" autocomplete="off">
+                <input id="q" type="text" placeholder="BUSCAR MÚSICA" class="zen-input w-full py-4 px-7" oninput="handleSearch()" autocomplete="off">
                 <div id="resultados"></div>
             </div>
             
-            <div class="mb-14">
-                <button onclick="zenStart()" class="w-full py-5 rounded-2xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.3em] uppercase flex items-center justify-center gap-3 active:scale-95 transition-transform">
+            <div class="mb-10">
+                <button onclick="zenStart()" class="w-full py-5 rounded-2xl bg-[var(--text)] text-[var(--bg)] font-bold text-[10px] tracking-[0.3em] uppercase active:scale-95 transition-transform">
                     START 30s MIX
                 </button>
             </div>
@@ -103,40 +118,41 @@
         </main>
     </div>
 
+    <!-- Reproductor fijo -->
     <footer id="player">
-        <div class="p-8">
+        <div class="p-6">
             <div class="max-w-xl mx-auto">
-                <div class="flex items-center gap-6 mb-6">
-                    <img id="p-img" src="" class="w-16 h-16 rounded-2xl object-cover bg-zinc-200 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <img id="p-img" src="https://via.placeholder.com/150" class="w-12 h-12 rounded-xl object-cover bg-zinc-100">
                     <div class="flex-1 min-w-0">
-                        <p id="p-title" class="text-sm font-bold truncate tracking-tight"></p>
-                        <p id="p-artist" class="label-caps mt-1.5 truncate opacity-60"></p>
+                        <p id="p-title" class="text-[13px] font-bold truncate tracking-tight">Selecciona una canción</p>
+                        <p id="p-artist" class="label-caps mt-1 truncate opacity-60">Artista</p>
                     </div>
-                    <div id="cassette-wrapper" class="cursor-pointer p-2" onclick="onlyAddFav()">
-                        <svg id="heart-icon" class="cassette-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <rect x="2" y="4" width="20" height="16" rx="2.5"></rect>
-                            <circle class="reel" cx="9" cy="12" r="1.2"></circle>
-                            <circle class="reel" cx="15" cy="12" r="1.2"></circle>
+                    <button onclick="onlyAddFav()" class="p-2">
+                        <svg id="heart-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                            <circle cx="9" cy="12" r="1"></circle>
+                            <circle cx="15" cy="12" r="1"></circle>
                         </svg>
-                    </div>
+                    </button>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <div class="progress-container" onclick="seek(event)"><div id="progress-bar"></div></div>
-                    <div class="flex justify-between">
-                        <span id="time-current" class="time-label">0:00</span>
-                        <span id="time-total" class="time-label">0:00</span>
+                    <div class="flex justify-between text-[9px] opacity-40 font-mono">
+                        <span id="time-current">0:00</span>
+                        <span id="time-total">0:00</span>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <button onclick="toggleShuffle()" id="play-shuffle" class="opacity-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline></svg></button>
-                    <div class="flex items-center gap-10">
-                        <button onclick="prevTrack()" class="opacity-40"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                        <button onclick="togglePlay()" class="w-16 h-16 rounded-full flex items-center justify-center" style="background: var(--btn-play); color: var(--btn-icon);"><div id="play-icon"></div></button>
-                        <button onclick="nextTrack()" class="opacity-40"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+                    <button onclick="toggleShuffle()" id="play-shuffle" class="opacity-20"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line></svg></button>
+                    <div class="flex items-center gap-8">
+                        <button onclick="prevTrack()"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                        <button onclick="togglePlay()" class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" style="background: var(--btn-play); color: var(--btn-icon);"><div id="play-icon"></div></button>
+                        <button onclick="nextTrack()"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
                     </div>
-                    <div class="w-5"></div>
+                    <div class="w-4"></div>
                 </div>
             </div>
         </div>
@@ -145,23 +161,20 @@
     <audio id="main-audio"></audio>
 
     <script>
-        // Bloquear altura para evitar saltos en móvil
-        document.body.style.height = window.innerHeight + 'px';
+        // Bloqueo de scroll y altura para Safari
+        const fixHeight = () => { document.body.style.height = window.innerHeight + 'px'; };
+        window.addEventListener('resize', fixHeight);
+        fixHeight();
 
         const APIS = ["https://pipedapi.kavin.rocks", "https://api.piped.private.coffee", "https://pipedapi.rivo.gg"];
-        let apiIdx = 0, isShuffle = false, currentTrack = null;
-        let favorites = JSON.parse(localStorage.getItem('zenFavs')) || [];
+        let apiIdx = 0, isShuffle = false, currentTrack = null, favorites = JSON.parse(localStorage.getItem('zenFavs')) || [];
         const audio = document.getElementById('main-audio');
 
         async function fetchPiped(endpoint) {
             try {
-                const response = await fetch(`${APIS[apiIdx]}${endpoint}`);
-                if (!response.ok) throw new Error();
-                return await response.json();
-            } catch (err) {
-                apiIdx = (apiIdx + 1) % APIS.length;
-                return fetchPiped(endpoint);
-            }
+                const r = await fetch(`${APIS[apiIdx]}${endpoint}`);
+                return r.ok ? await r.json() : throwErr();
+            } catch { apiIdx = (apiIdx + 1) % APIS.length; return fetchPiped(endpoint); }
         }
 
         function toggleTheme() {
@@ -178,49 +191,43 @@
             if (!q) { resDiv.style.display = 'none'; return; }
             searchTimer = setTimeout(async () => {
                 resDiv.style.display = 'block';
-                resDiv.innerHTML = '<div class="p-6 text-center label-caps animate-pulse">...</div>';
+                resDiv.innerHTML = '<div class="p-6 text-center label-caps">Buscando...</div>';
                 const data = await fetchPiped(`/search?q=${encodeURIComponent(q)}&filter=music_songs`);
                 resDiv.innerHTML = data.items.slice(0, 6).map(item => {
                     const id = item.url.split('=')[1];
                     return `<div onclick="selectTrack('${id}', '${item.title.replace(/'/g,"")}', '${item.uploaderName.replace(/'/g,"")}', '${item.thumbnail}')" class="flex items-center gap-4 p-4 border-b border-[var(--border)]"><img src="${item.thumbnail}" class="w-10 h-10 rounded-lg object-cover"><div class="flex-1 min-w-0"><p class="text-[12px] font-bold truncate">${item.title}</p><p class="label-caps opacity-50">${item.uploaderName}</p></div></div>`;
                 }).join('');
-            }, 400);
+            }, 500);
         }
 
         function selectTrack(id, title, artist, thumb) {
             document.getElementById('resultados').style.display = 'none';
             document.getElementById('q').value = '';
-            document.getElementById('q').blur(); // Cierra teclado
+            document.getElementById('q').blur();
             reproducir(id, title, artist, thumb);
         }
 
         async function reproducir(id, title, artist, thumb) {
             currentTrack = {id, title, artist, thumb};
-            document.getElementById('player').classList.add('visible');
             document.getElementById('p-title').innerText = title;
             document.getElementById('p-artist').innerText = artist;
             document.getElementById('p-img').src = thumb;
             updateFavBtn();
             try {
-                const response = await fetch(`${APIS[apiIdx]}/streams/${id}`);
-                const data = await response.json();
+                const data = await fetchPiped(`/streams/${id}`);
                 const stream = data.audioStreams.find(s => s.format === 'M4A') || data.audioStreams[0];
                 audio.src = stream.url;
                 audio.play();
                 updatePlayIcon();
-            } catch (e) {
-                apiIdx = (apiIdx + 1) % APIS.length;
-                reproducir(id, title, artist, thumb);
-            }
+            } catch (e) { console.error("Error de carga"); }
         }
 
         function togglePlay() { audio.paused ? audio.play() : audio.pause(); updatePlayIcon(); }
-        
         function updatePlayIcon() {
-            const iconColor = getComputedStyle(document.body).getPropertyValue('--btn-icon').trim();
+            const color = getComputedStyle(document.body).getPropertyValue('--btn-icon').trim();
             document.getElementById('play-icon').innerHTML = audio.paused ? 
-                `<svg width="26" height="26" viewBox="0 0 24 24" fill="${iconColor}"><path d="M8 5v14l11-7z"/></svg>` : 
-                `<svg width="26" height="26" viewBox="0 0 24 24" fill="${iconColor}"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+                `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M8 5v14l11-7z"/></svg>` : 
+                `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
         }
 
         audio.ontimeupdate = () => {
@@ -237,13 +244,13 @@
         function updateFavsUI() {
             document.getElementById('fav-count').innerText = favorites.length;
             document.getElementById('favs-list').innerHTML = favorites.map(f => `
-                <div class="flex items-center gap-5 p-4 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
-                    <img src="${f.thumb}" class="w-14 h-14 rounded-xl object-cover" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
+                <div class="flex items-center gap-4 p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+                    <img src="${f.thumb}" class="w-12 h-12 rounded-lg object-cover" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
                     <div class="flex-1 min-w-0" onclick="reproducir('${f.id}','${f.title}','${f.artist}','${f.thumb}')">
-                        <p class="text-[13px] font-bold truncate">${f.title}</p>
+                        <p class="text-[12px] font-bold truncate">${f.title}</p>
                         <p class="label-caps opacity-50">${f.artist}</p>
                     </div>
-                    <button onclick="removeFav('${f.id}')" class="opacity-20 p-2">×</button>
+                    <button onclick="removeFav('${f.id}')" class="opacity-20 px-2">×</button>
                 </div>`).join('');
             localStorage.setItem('zenFavs', JSON.stringify(favorites));
         }
@@ -273,11 +280,6 @@
             reproducir(favorites[pIdx].id, favorites[pIdx].title, favorites[pIdx].artist, favorites[pIdx].thumb);
         }
         function zenStart() { if (favorites.length) { isShuffle = true; toggleShuffle(); nextTrack(); } }
-
-        window.addEventListener('resize', () => {
-            // Prevenir que el resize de la barra de direcciones mueva todo
-            document.body.style.height = window.innerHeight + 'px';
-        });
 
         updateFavsUI();
         updatePlayIcon();
